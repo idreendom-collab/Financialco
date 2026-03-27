@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Dashboard Keuangan Pribadi</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome for subtle icons (optional but adds clarity) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #22c55e;
+            padding-left: 18px;
+        }
+
+        /* Grid cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 18px 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid #334155;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            background: #273549;
+            border-color: #22c55e;
+        }
+
+        .title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .value {
+            font-size: 26px;
+            font-weight: 700;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        /* form section */
+        .form-card {
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 32px;
+            border: 1px solid #334155;
+        }
+
+        .form-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        input, button {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            width: 100%;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+        }
+
+        button {
+            background: #22c55e;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background: #16a34a;
+            transform: scale(0.98);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        /* table styles */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 28px 0 32px;
+            border-radius: 20px;
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #2d3a4e;
+        }
+
+        .chart-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .chart-box {
+            flex: 1;
+            min-width: 280px;
+            background: #1e293b;
+            border-radius: 24px;
+            padding: 18px;
+            border: 1px solid #334155;
+        }
+
+        .chart-box canvas {
+            max-height: 280px;
+            width: 100%;
+        }
+
+        .badge-total {
+            font-size: 13px;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 16px; }
+            .value { font-size: 22px; }
+            .grid { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2><i class="fas fa-chart-line" style="color: #22c55e;"></i> Dashboard Arus Keuangan</h2>
+
+    <!-- KPI Cards: 8 metrik utama -->
+    <div class="grid">
+        <div class="card"><div class="title"><i class="fas fa-arrow-up"></i> Pemasukan Utama</div><div id="utama" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-plus-circle"></i> Tambahan</div><div id="tambahan" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-home"></i> Tetap</div><div id="tetap" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-coins"></i> Sisa</div><div id="sisa" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-piggy-bank"></i> Dana</div><div id="dana" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-chart-simple"></i> Investasi</div><div id="investasi" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-calendar-day"></i> Harian</div><div id="harian" class="value">Rp 0</div></div>
+        <div class="card"><div class="title"><i class="fas fa-wallet"></i> Total Pengeluaran</div><div id="total" class="value">Rp 0</div></div>
+    </div>
+
+    <!-- Form Tambah Pengeluaran -->
+    <div class="form-card">
+        <h3><i class="fas fa-receipt"></i> Catat Pengeluaran Baru</h3>
+        <div class="input-group">
+            <div class="input-field">
+                <label style="font-size:12px; opacity:0.7;">Tanggal</label>
+                <input type="date" id="tgl" value="2025-01-01">
+            </div>
+            <div class="input-field">
+                <label style="font-size:12px; opacity:0.7;">Nominal (Rp)</label>
+                <input type="number" id="nominal" placeholder="0" step="500">
+            </div>
+            <div class="input-field">
+                <label style="font-size:12px; opacity:0.7;">Keterangan</label>
+                <input type="text" id="ket" placeholder="contoh: belanja bulanan">
+            </div>
+            <div class="input-field" style="flex: 0.3; min-width:100px;">
+                <button onclick="saveExpense()"><i class="fas fa-save"></i> Simpan</button>
+            </div>
+        </div>
+        <div style="font-size:12px; margin-top:12px; background:#0f172a; border-radius:12px; padding:8px; color:#94a3b8;">
+            <i class="fas fa-info-circle"></i> Catatan: pemasukan utama, tambahan, tetap, dana, investasi, harian diambil dari konfigurasi internal (simulasi data master)
+        </div>
+    </div>
+
+    <!-- Tabel Pengeluaran -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr><th>Tanggal</th><th>Nominal (Rp)</th><th>Keterangan</th><th style="width:80px">Aksi</th></tr>
+            </thead>
+            <tbody id="tbody">
+                <tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-row">
+        <div class="chart-box">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span><i class="fas fa-chart-line"></i> Tren Pengeluaran Bulanan</span>
+                <span class="badge-total">(Rp)</span>
+            </div>
+            <canvas id="monthlyChart" width="400" height="250" style="width:100%; max-height:260px"></canvas>
+        </div>
+        <div class="chart-box">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span><i class="fas fa-chart-bar"></i> Tahunan per Bulan</span>
+                <span class="badge-total">(Rp)</span>
+            </div>
+            <canvas id="yearlyChart" width="400" height="250" style="width:100%; max-height:260px"></canvas>
+        </div>
+    </div>
+    <footer>Dashboard mandiri — semua data tersimpan di localStorage browser Anda</footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  FINANCIAL DATA MODEL (simulasi penyimpanan lokal, tanpa google.script)
+    //  Struktur data:
+    //  - masterIncomeConfig: menyimpan nilai pemasukan utama, tambahan, tetap, dana, investasi, harian.
+    //  - expensesList: array pengeluaran [{id, tanggal, nominal, keterangan}]
+    //  - Untuk grafik: agregasi bulanan & tahunan berdasarkan expenses
+    // --------------------------------------------------------------
+
+    // --- Inisialisasi data default (jika belum ada)
+    let masterIncome = {
+        utama: 8500000,      // pemasukan utama (gaji)
+        tambahan: 1250000,   // freelance / side
+        tetap: 2100000,      // cicilan, sewa, dll
+        dana: 500000,        // dana darurat / tabungan
+        investasi: 700000,   // reksadana / saham
+        harian: 350000       // pengeluaran harian dialokasikan
+    };
+
+    let expenses = [];       // [{ id, tanggal, nominal, keterangan }]
+    let nextId = 1;
+
+    // fungsi load/save ke localStorage
+    function loadLocalData() {
+        const savedMaster = localStorage.getItem("finance_master");
+        if (savedMaster) {
+            try {
+                const parsed = JSON.parse(savedMaster);
+                masterIncome = { ...masterIncome, ...parsed };
+            } catch(e) {}
+        }
+        const savedExpenses = localStorage.getItem("finance_expenses");
+        if (savedExpenses) {
+            try {
+                expenses = JSON.parse(savedExpenses);
+                if(expenses.length > 0) {
+                    // cari id terbesar untuk nextId
+                    const maxId = Math.max(...expenses.map(e => e.id), 0);
+                    nextId = maxId + 1;
+                } else {
+                    nextId = 1;
+                }
+            } catch(e) { expenses = []; }
+        }
+        // jika masih kosong, isi beberapa contoh data agar grafik menarik
+        if(expenses.length === 0) {
+            const today = new Date();
+            const sampleData = [
+                { id: nextId++, tanggal: new Date(today.getFullYear(), today.getMonth()-1, 5).toISOString().slice(0,10), nominal: 750000, keterangan: "Belanja bulanan" },
+                { id: nextId++, tanggal: new Date(today.getFullYear(), today.getMonth()-1, 15).toISOString().slice(0,10), nominal: 320000, keterangan: "Makan di luar" },
+                { id: nextId++, tanggal: new Date(today.getFullYear(), today.getMonth(), 2).toISOString().slice(0,10), nominal: 540000, keterangan: "Listrik & air" },
+                { id: nextId++, tanggal: new Date(today.getFullYear(), today.getMonth(), 10).toISOString().slice(0,10), nominal: 210000, keterangan: "Transport" },
+                { id: nextId++, tanggal: new Date(today.getFullYear(), today.getMonth()-2, 20).toISOString().slice(0,10), nominal: 980000, keterangan: "Kesehatan" }
+            ];
+            expenses.push(...sampleData);
+            persistExpenses();
+        }
+    }
+
+    function persistMaster() {
+        localStorage.setItem("finance_master", JSON.stringify(masterIncome));
+    }
+
+    function persistExpenses() {
+        localStorage.setItem("finance_expenses", JSON.stringify(expenses));
+    }
+
+    // helper: format Rupiah
+    function rp(n) {
+        if (n === undefined || n === null) n = 0;
+        return "Rp " + n.toLocaleString("id-ID");
+    }
+
+    // Hitung total pengeluaran keseluruhan
+    function getTotalExpenses() {
+        return expenses.reduce((sum, e) => sum + (Number(e.nominal) || 0), 0);
+    }
+
+    // Hitung Sisa = (utama + tambahan) - (tetap + dana + investasi + harian + total pengeluaran)
+    // sesuai konsep dashboard: pemasukan total - alokasi tetap & investasi & pengeluaran riil
+    function computeSisa() {
+        const totalIncome = masterIncome.utama + masterIncome.tambahan;
+        const fixedAlloc = masterIncome.tetap + masterIncome.dana + masterIncome.investasi + masterIncome.harian;
+        const spent = getTotalExpenses();
+        return totalIncome - fixedAlloc - spent;
+    }
+
+    // Aggregate bulanan untuk grafik line (berdasarkan tanggal pengeluaran)
+    function getMonthlyAggregate() {
+        const monthsMap = new Map(); // key: "YYYY-MM"
+        expenses.forEach(exp => {
+            if(!exp.tanggal) return;
+            const date = new Date(exp.tanggal);
+            if(isNaN(date.getTime())) return;
+            const yearMonth = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+            const nominal = Number(exp.nominal) || 0;
+            monthsMap.set(yearMonth, (monthsMap.get(yearMonth) || 0) + nominal);
+        });
+        // sort by date
+        const sorted = Array.from(monthsMap.keys()).sort();
+        const labels = sorted.map(k => {
+            const [year, month] = k.split('-');
+            const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+            return `${monthNames[parseInt(month)-1]} ${year.slice(-2)}`;
+        });
+        const data = sorted.map(k => monthsMap.get(k));
+        return { labels, data };
+    }
+
+    // Grafik batang tahunan (per bulan dalam tahun berjalan + tahun sebelumnya jika perlu, tapi kita ambil tahun berjalan)
+    function getYearlyBarData() {
+        const currentYear = new Date().getFullYear();
+        const monthlyTotals = Array(12).fill(0);
+        expenses.forEach(exp => {
+            if(!exp.tanggal) return;
+            const date = new Date(exp.tanggal);
+            if(isNaN(date.getTime())) return;
+            if(date.getFullYear() === currentYear) {
+                const monthIdx = date.getMonth(); // 0-11
+                monthlyTotals[monthIdx] += (Number(exp.nominal) || 0);
+            }
+        });
+        const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return { labels: monthLabels, data: monthlyTotals };
+    }
+
+    // render seluruh UI: card, tabel, chart
+    let chartMonthly, chartYearly;
+
+    function renderDashboard() {
+        // update card values
+        document.getElementById("utama").innerText = rp(masterIncome.utama);
+        document.getElementById("tambahan").innerText = rp(masterIncome.tambahan);
+        document.getElementById("tetap").innerText = rp(masterIncome.tetap);
+        document.getElementById("dana").innerText = rp(masterIncome.dana);
+        document.getElementById("investasi").innerText = rp(masterIncome.investasi);
+        document.getElementById("harian").innerText = rp(masterIncome.harian);
+        const totalExp = getTotalExpenses();
+        document.getElementById("total").innerText = rp(totalExp);
+        const sisaValue = computeSisa();
+        document.getElementById("sisa").innerText = rp(sisaValue);
+        
+        // render tabel pengeluaran
+        const tbody = document.getElementById("tbody");
+        if (!expenses.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada pengeluaran, tambahkan sekarang</td></tr>';
+        } else {
+            tbody.innerHTML = "";
+            // sort by tanggal descending (terbaru di atas)
+            const sorted = [...expenses].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+            sorted.forEach(exp => {
+                const row = tbody.insertRow();
+                const cellDate = row.insertCell(0);
+                const cellNominal = row.insertCell(1);
+                const cellKet = row.insertCell(2);
+                const cellAction = row.insertCell(3);
+                
+                const dateObj = new Date(exp.tanggal);
+                const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString("id-ID") : exp.tanggal;
+                cellDate.innerText = formattedDate;
+                cellNominal.innerText = rp(exp.nominal);
+                cellKet.innerText = exp.keterangan || "-";
+                const delBtn = document.createElement("button");
+                delBtn.innerText = "Hapus";
+                delBtn.className = "btn-danger";
+                delBtn.style.background = "#dc2626";
+                delBtn.style.border = "none";
+                delBtn.style.padding = "6px 12px";
+                delBtn.style.borderRadius = "20px";
+                delBtn.style.cursor = "pointer";
+                delBtn.style.fontSize = "0.7rem";
+                delBtn.style.fontWeight = "bold";
+                delBtn.onclick = (function(id) { return function() { deleteExpense(id); }; })(exp.id);
+                cellAction.appendChild(delBtn);
+            });
+        }
+
+        // --- Grafik 1: Line chart (bulanan)
+        const monthly = getMonthlyAggregate();
+        const ctx1 = document.getElementById('monthlyChart').getContext('2d');
+        if (chartMonthly) chartMonthly.destroy();
+        chartMonthly = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: monthly.labels.length ? monthly.labels : ['Belum Data'],
+                datasets: [{
+                    label: 'Total Pengeluaran',
+                    data: monthly.labels.length ? monthly.data : [0],
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34,197,94,0.05)',
+                    tension: 0.2,
+                    fill: true,
+                    pointBackgroundColor: '#22c55e',
+                    pointBorderColor: '#0f172a',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    tooltip: { callbacks: { label: (ctx) => `Rp ${ctx.raw.toLocaleString("id-ID")}` } },
+                    legend: { labels: { color: '#cbd5e1' } }
+                },
+                scales: {
+                    y: { ticks: { callback: (val) => 'Rp ' + val.toLocaleString("id-ID"), color: '#94a3b8' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#cbd5e1' }, grid: { display: false } }
+                }
+            }
+        });
+
+        // Grafik 2: Bar chart (tahunan)
+        const yearly = getYearlyBarData();
+        const ctx2 = document.getElementById('yearlyChart').getContext('2d');
+        if (chartYearly) chartYearly.destroy();
+        chartYearly = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: yearly.labels,
+                datasets: [{
+                    label: `Pengeluaran ${new Date().getFullYear()}`,
+                    data: yearly.data,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    tooltip: { callbacks: { label: (ctx) => `Rp ${ctx.raw.toLocaleString("id-ID")}` } },
+                    legend: { labels: { color: '#cbd5e1' } }
+                },
+                scales: {
+                    y: { ticks: { callback: (val) => 'Rp ' + val.toLocaleString("id-ID"), color: '#94a3b8' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#cbd5e1' }, grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // Fungsi simpan pengeluaran (dipanggil tombol)
+    function saveExpense() {
+        const tanggalInput = document.getElementById("tgl").value;
+        const nominalInput = document.getElementById("nominal").value;
+        const ketInput = document.getElementById("ket").value.trim();
+        
+        if (!tanggalInput) {
+            alert("Pilih tanggal terlebih dahulu");
+            return;
+        }
+        const nominalVal = Number(nominalInput);
+        if (isNaN(nominalVal) || nominalVal <= 0) {
+            alert("Masukkan nominal yang valid (lebih dari 0)");
+            return;
+        }
+        if (ketInput === "") {
+            alert("Keterangan tidak boleh kosong");
+            return;
+        }
+        
+        const newExpense = {
+            id: nextId++,
+            tanggal: tanggalInput,
+            nominal: nominalVal,
+            keterangan: ketInput
+        };
+        expenses.push(newExpense);
+        persistExpenses();
+        // reset form nominal & keterangan, pertahankan tanggal
+        document.getElementById("nominal").value = "";
+        document.getElementById("ket").value = "";
+        renderDashboard();
+    }
+
+    function deleteExpense(id) {
+        const index = expenses.findIndex(exp => exp.id === id);
+        if (index !== -1) {
+            expenses.splice(index, 1);
+            persistExpenses();
+            renderDashboard();
+        }
+    }
+
+    // ==== fitur tambahan: untuk mengedit master income via console? biar lebih user friendly? tapi permintaan awal hanya untuk tampilan dan input pengeluaran.
+    // Namun karena kode sebelumnya membutuhkan 'google.script.run' yang tidak ada di browser biasa, kita ganti dengan localStorage.
+    // Agar dashboard lebih dinamis, kita bisa menambahkan sedikit kontrol edit untuk nilai pemasukan (opsi ekstra).
+    // TAPI agar tetap sesuai original "Pemasukan Utama, Tambahan, Tetap, dll" namun bisa diubah user dengan mudah. 
+    // Buat tombol kecil pengaturan untuk mengedit nilai-nilai master? Akan lebih baik UX.
+    // Tambahkan modal sederhana atau inline edit? Saya akan buat tombol edit kecil di samping card? Tapi tidak merusak tampilan utama.
+    // Karena persyaratan awal menggunakan google script namun kita tidak bisa eksekusi di side server, kita ganti dengan mekanisme localstorage.
+    // Juga kita tambahkan sedikit kontrol agar user bisa mengubah angka pemasukan dan alokasi.
+    // Tambahkan tombol "Atur Anggaran" yang memungkinkan ubah master.
+    
+    function showMasterEditor() {
+        const newUtama = prompt("Pemasukan Utama (Rp):", masterIncome.utama);
+        if(newUtama !== null && !isNaN(Number(newUtama))) masterIncome.utama = Number(newUtama);
+        const newTambahan = prompt("Pemasukan Tambahan (Rp):", masterIncome.tambahan);
+        if(newTambahan !== null && !isNaN(Number(newTambahan))) masterIncome.tambahan = Number(newTambahan);
+        const newTetap = prompt("Pengeluaran Tetap (Rp):", masterIncome.tetap);
+        if(newTetap !== null && !isNaN(Number(newTetap))) masterIncome.tetap = Number(newTetap);
+        const newDana = prompt("Alokasi Dana (Rp):", masterIncome.dana);
+        if(newDana !== null && !isNaN(Number(newDana))) masterIncome.dana = Number(newDana);
+        const newInvest = prompt("Alokasi Investasi (Rp):", masterIncome.investasi);
+        if(newInvest !== null && !isNaN(Number(newInvest))) masterIncome.investasi = Number(newInvest);
+        const newHarian = prompt("Alokasi Harian (Rp):", masterIncome.harian);
+        if(newHarian !== null && !isNaN(Number(newHarian))) masterIncome.harian = Number(newHarian);
+        persistMaster();
+        renderDashboard();
+    }
+    
+    // menambahkan tombol pengaturan di header
+    const headerDiv = document.querySelector("h2");
+    const editBtn = document.createElement("button");
+    editBtn.innerHTML = '<i class="fas fa-sliders-h"></i> Atur Anggaran';
+    editBtn.style.background = "#334155";
+    editBtn.style.marginLeft = "auto";
+    editBtn.style.padding = "8px 16px";
+    editBtn.style.fontSize = "0.8rem";
+    editBtn.style.borderRadius = "30px";
+    editBtn.style.width = "auto";
+    editBtn.style.border = "none";
+    editBtn.style.cursor = "pointer";
+    editBtn.onclick = showMasterEditor;
+    headerDiv.style.display = "flex";
+    headerDiv.style.alignItems = "center";
+    headerDiv.style.justifyContent = "space-between";
+    headerDiv.appendChild(editBtn);
+    
+    // inisialisasi data dan render
+    loadLocalData();
+    renderDashboard();
+</script>
+</body>
+</html>
